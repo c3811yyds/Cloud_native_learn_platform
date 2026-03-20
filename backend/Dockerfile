@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ COPY backend /app/backend
 COPY third_party/Sensitive-lexicon /app/third_party/Sensitive-lexicon
 COPY VERSION /app/VERSION
 
-# Docker 构建时把根目录 VERSION 打进镜像，运行时统一从这里读取版本号
+# Copy VERSION into the image so runtime reads the packaged app version.
 ENV APP_VERSION_FILE=/app/VERSION
 
 WORKDIR /app/backend
