@@ -30,8 +30,8 @@
 在服务器执行：
 
 ```bash
-git clone https://github.com/c3811yyds/cloud-native-learning-platform.git
-cd cloud-native-learning-platform
+git clone https://github.com/c3811yyds/Cloud_native_learn_platform.git
+cd Cloud_native_learn_platform
 ```
 
 说明：
