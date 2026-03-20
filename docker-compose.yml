@@ -1,0 +1,73 @@
+﻿services:
+  frontend:
+    container_name: cnlp-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - cnlp-network
+    restart: always
+
+  backend:
+    container_name: cnlp-backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "127.0.0.1:5000:5000"
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: mysql+pymysql://admin:admin@db:3306/cloud_native_learning_platform?charset=utf8mb4
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - cnlp_backend_storage:/app/backend/storage
+    networks:
+      - cnlp-network
+    restart: always
+
+  db:
+    container_name: cnlp-mysql
+    image: mysql:8.0
+    command: --default-authentication-plugin=caching_sha2_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: cloud_native_learning_platform
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - cnlp_db_data:/var/lib/mysql
+      - ./db-backups/database_seed.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - cnlp-network
+
+  redis:
+    container_name: cnlp-redis
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    restart: always
+    ports:
+      - "127.0.0.1:6380:6379"
+    volumes:
+      - cnlp_redis_data:/data
+    networks:
+      - cnlp-network
+
+networks:
+  cnlp-network:
+    driver: bridge
+
+volumes:
+  cnlp_db_data:
+  cnlp_backend_storage:
+  cnlp_redis_data:
