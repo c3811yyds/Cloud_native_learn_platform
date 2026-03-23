@@ -139,3 +139,5 @@ docker compose up -d --build
 - Redis 缓存与限流
 - Docker Compose 编排
 - 学习如何维护一个完整的前后端项目
+
+CI test update.
