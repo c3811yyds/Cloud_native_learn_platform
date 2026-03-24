@@ -123,19 +123,3 @@ class TeacherInviteCode(db.Model):
     expires_at = db.Column(db.DateTime, nullable=False)
     created_by_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
     used_by_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
-
-
-class PracticeStudent(db.Model):
-    __tablename__ = "practice_students"
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False, index=True)
-    major = db.Column(db.String(50), nullable=False, default="", index=True)
-    score = db.Column(db.Integer, nullable=False, default=0)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(
-        db.DateTime,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
-        nullable=False,
-    )
