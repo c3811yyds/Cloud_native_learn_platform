@@ -1,0 +1,56 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref to deploy
+        required: true
+        default: main
+        type: string
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Manual Deploy
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Prepare SSH key
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf "%s" "$DEPLOY_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+      - name: Add deploy host to known_hosts
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+        run: |
+          ssh-keyscan -p "${DEPLOY_PORT}" "${DEPLOY_HOST}" >> ~/.ssh/known_hosts
+
+      - name: Deploy application
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_REF: ${{ inputs.ref }}
+        run: |
+          ssh -p "${DEPLOY_PORT}" "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "export DEPLOY_PATH='${DEPLOY_PATH}' DEPLOY_REF='${DEPLOY_REF}'; bash -s" <<'EOF'
+          set -e
+          cd "${DEPLOY_PATH}"
+          git fetch origin
+          git checkout "${DEPLOY_REF}"
+          git pull --ff-only origin "${DEPLOY_REF}"
+          docker compose up -d --build
+          docker compose ps
+          curl -fsS http://127.0.0.1:5000/api/health
+          EOF
